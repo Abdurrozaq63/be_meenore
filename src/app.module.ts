@@ -5,15 +5,12 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
-// import { TagsModule } from './tags/tags/tags.module';
-// import { TagstagsService } from './tagstags/tagstags.service';
-// import { TagsModule } from './tags/tags.module';
+
 import { TagsModule } from './tags/tags.module';
-import { TagsService } from './tags/tags.service';
 import { AuthModule } from './auth/auth.module';
 import { SessionsModule } from './sessions/sessions.module';
-import { AudioController } from './audio/audio.controller';
 import { AudioModule } from './audio/audio.module';
+import { AiModule } from './ai/ai.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -23,6 +20,9 @@ import * as Joi from 'joi';
       validationSchema: Joi.object({
         DATABASE_URL: Joi.string().required(),
         JWT_SECRET: Joi.string().required(),
+        UPLOADTHING_TOKEN: Joi.string().required(),
+        GEMINI_API_KEY: Joi.string().required(),
+        HF_TOKEN: Joi.string().required(),
       }),
     }),
     UsersModule,
@@ -32,8 +32,9 @@ import * as Joi from 'joi';
     TagsModule,
     SessionsModule,
     AudioModule,
+    AiModule,
   ],
-  controllers: [AppController, AudioController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

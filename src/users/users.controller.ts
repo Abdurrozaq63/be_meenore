@@ -7,15 +7,16 @@ import {
   Body,
   Query,
   UseGuards,
-  Req,
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { type Request } from 'express';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { type AuthenticatedUser } from 'src/auth/types/current-user.type';
+import { UpdatePasswordDto } from './dto/dupdate-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -24,7 +25,7 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getMe(@CurrentUser() user: AuthenticatedUser) {
-    return user;
+    return this.usersService.findById(user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -41,5 +42,21 @@ export class UsersController {
   @Get(':id')
   getById(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.usersService.findById(id);
+  }
+
+  @Patch(':id')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.updateUser(id, updateUserDto);
+  }
+
+  @Patch(':id/password')
+  async updatePassword(
+    @Param('id') id: string,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(id, updatePasswordDto);
   }
 }

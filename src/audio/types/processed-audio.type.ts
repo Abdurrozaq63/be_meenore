@@ -1,7 +1,7 @@
-export interface UploadAudio {
-  key: string;
+export interface ProcessedAudio {
   url: string;
   fileName: string;
   mimeType: string;
   size: number;
+  transcript: string;
 }

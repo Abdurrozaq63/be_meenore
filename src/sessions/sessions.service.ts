@@ -10,6 +10,10 @@ import { CreateSessionInput } from './types/create-session-input.type';
 import { PaginationDto } from 'src/users/dto/pagination.dto';
 import { GetSessionsDto } from './dto/get-sessions.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
+import { StorageService } from 'src/audio/storage/storage.service';
+import { TranscriptionService } from 'src/ai/transcription/transcription.service';
+import { SummarizationService } from 'src/ai/summarization/summarization.service';
+import { ProcessSessionDto } from './dto/process-session.dto';
 
 @Injectable()
 export class SessionsService {
@@ -18,6 +22,9 @@ export class SessionsService {
     private readonly themesRepository: ThemesRepository,
     private readonly themePointRepository: ThemePointsRepository,
     private readonly database: DatabaseService,
+    private readonly storageService: StorageService,
+    private readonly transcriptionService: TranscriptionService,
+    private readonly summarizationService: SummarizationService,
   ) {}
 
   async findAll(userId, query: GetSessionsDto) {
@@ -92,6 +99,7 @@ export class SessionsService {
   }
 
   async updateFavourite(id: string, userId: string, favourite: boolean) {
+    console.log('favourite: ', favourite);
     const session = await this.sessionsRepository.updateFavourite(
       id,
       userId,
@@ -123,6 +131,7 @@ export class SessionsService {
         data,
         client,
       );
+      console.log('PAYLOAD', id, userId, data, session);
       if (!session) {
         throw new NotFoundException('Session not found');
       }
@@ -153,5 +162,64 @@ export class SessionsService {
       }
       return session;
     });
+  }
+
+  async process(
+    userId: string,
+    file: Express.Multer.File,
+    data: ProcessSessionDto,
+  ) {
+    const uploadedAudio = await this.storageService.upload(file);
+
+    try {
+      const transcript = await this.transcriptionService.transcribe(
+        file.buffer,
+        file.mimetype,
+      );
+
+      const summary = await this.summarizationService.summarize(transcript);
+
+      return this.database.transaction(async (client) => {
+        const session = await this.sessionsRepository.create(
+          {
+            userId,
+            title: data.title,
+            audioUrl: uploadedAudio.url,
+            audioDurationSeconds: data.audioDurationSeconds,
+            rawTranscript: transcript,
+            tagId: data.tagId,
+          },
+          client,
+        );
+
+        for (const [themeIndex, themeData] of summary.themes.entries()) {
+          const theme = await this.themesRepository.create(
+            {
+              sessionId: session.id,
+              themeOrder: themeIndex + 1,
+              themeTitle: themeData.title,
+            },
+            client,
+          );
+
+          for (const [pointIndex, pointText] of themeData.points.entries()) {
+            await this.themePointRepository.create(
+              {
+                themeId: theme.id,
+                pointOrder: pointIndex + 1,
+                pointText,
+              },
+              client,
+            );
+          }
+        }
+
+        return session;
+      });
+    } catch (error) {
+      await this.storageService.delete(uploadedAudio.key);
+
+      throw error;
+    }
   }
 }

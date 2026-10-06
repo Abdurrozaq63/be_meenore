@@ -111,12 +111,13 @@ export class SessionsRepository {
   async findById(id: string, userId: string) {
     const result = await this.databaseService.query(
       `SELECT
-      s.id AS "sessionsId",
+      s.id AS "sessionId",
       s.title AS "sessionTitle",
       s.audio_url AS "audioUrl",
       s.audio_duration_seconds AS "audioDurationSeconds",
       s.raw_transcript AS "rawTranscript",
       s.is_favourite AS "isFavourite",
+      s.created_at AS "createdAt",
 
       st.id AS "themeId",
       st.theme_title AS "themeTitle",
@@ -153,6 +154,7 @@ export class SessionsRepository {
       audioDurationSeconds: firstRow.audioDurationSeconds,
       rawTranscript: firstRow.rawTranscript,
       isFavourite: firstRow.isFavourite,
+      createdAt: firstRow.createdAt,
       themes: [] as {
         id: string;
         title: string;
@@ -284,9 +286,8 @@ export class SessionsRepository {
       fields.push(`tag_id = $${values.length}`);
     }
 
-    if (fields.length === 0) {
-      return undefined;
-    }
+    // Tetap perbarui updated_at
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
 
     values.push(id);
     const idParam = `$${values.length}`;
@@ -296,9 +297,7 @@ export class SessionsRepository {
 
     const result = await client.query(
       `UPDATE sessions
-     SET
-       ${fields.join(', ')},
-       updated_at = CURRENT_TIMESTAMP
+     SET ${fields.join(', ')}
      WHERE id = ${idParam}
        AND user_id = ${userIdParam}
      RETURNING
@@ -314,6 +313,7 @@ export class SessionsRepository {
       values,
     );
 
+    // Jika result.rows[0] undefined, berartii ID atau userId memang benar-benar tidak cocok di DB
     return result.rows[0];
   }
 }

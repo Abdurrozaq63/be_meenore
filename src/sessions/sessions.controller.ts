@@ -2,13 +2,18 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -19,6 +24,8 @@ import { PaginationDto } from 'src/users/dto/pagination.dto';
 import { GetSessionsDto } from './dto/get-sessions.dto';
 import { UpdateFavouriteDto } from './dto/update-favourite.dto.ts';
 import { UpdateSessionDto } from './dto/update-session.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ProcessSessionDto } from './dto/process-session.dto';
 
 @Controller('sessions')
 export class SessionsController {
@@ -80,5 +87,29 @@ export class SessionsController {
     @Body() updateSessionDto: UpdateSessionDto,
   ) {
     return this.sessionsService.update(id, user.userId, updateSessionDto);
+  }
+
+  @Post('process')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('audio'))
+  process(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ProcessSessionDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 25 * 1024 * 1024,
+          }),
+          new FileTypeValidator({
+            fileType: /^audio\/(mpeg|wav|x-wav|mp4|x-m4a|webm|ogg)(;.*)?$/,
+            skipMagicNumbersValidation: true,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.sessionsService.process(user.userId, file, dto);
   }
 }
