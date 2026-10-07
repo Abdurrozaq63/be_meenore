@@ -18,7 +18,7 @@ async function bootstrap() {
   app.useGlobalFilters(new PostgresExceptionFilter());
   app.enableCors({
     origin: 'https://meenore.vercel.app', // Mengizinkan frontend React Anda
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true, // Izinkan jika nanti butuh mengirim cookie/session
   });
   await app.listen(process.env.PORT ?? 3000);
