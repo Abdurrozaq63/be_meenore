@@ -12,9 +12,9 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PaginationDto } from './dto/pagination.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { type AuthenticatedUser } from 'src/auth/types/current-user.type';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { type AuthenticatedUser } from '../auth/types/current-user.type';
 import { UpdatePasswordDto } from './dto/dupdate-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
