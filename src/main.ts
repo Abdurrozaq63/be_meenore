@@ -17,7 +17,7 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new PostgresExceptionFilter());
   app.enableCors({
-    origin: 'http://localhost:5173', // Mengizinkan frontend React Anda
+    origin: 'https://meenore.vercel.app/', // Mengizinkan frontend React Anda
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true, // Izinkan jika nanti butuh mengirim cookie/session
   });
