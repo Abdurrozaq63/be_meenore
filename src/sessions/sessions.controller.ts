@@ -16,8 +16,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { type AuthenticatedUser } from 'src/auth/types/current-user.type';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { PaginationDto } from 'src/users/dto/pagination.dto';
